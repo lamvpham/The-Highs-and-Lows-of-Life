@@ -19,19 +19,32 @@ let textVisible = true;
 let stopTime = null; 
 
 // socket components
-const socket = io();
+// console.log('Here!!!');
+// const socket = io('http://127.0.0.1:5500/', {
+//   transports: ['websocket'],
+//   cors: {
+//     origin: 'http://127.0.0.1:5500/public/client/index.html'
+//   }
+// });
+
+let socket = io.connect('http://127.0.0.1:5500/');
+console.log(socket);
+
+socket.on('connection', () => {
+  console.log('Connect to the server');
+});
 
 socket.on('key', (data) => {
-  print(data);
-})
+  console.log(data);
+});
 
 socket.on('Wheel1', (focusedLabel1) => {
-  print(focusedLabel1);
-})
+  console.log(focusedLabel1);
+});
 
 socket.on('Wheel2', (focusedLabel2) => {
-  print(focusedLabel2);
-})
+  console.log(focusedLabel2);
+});
 
 
 
