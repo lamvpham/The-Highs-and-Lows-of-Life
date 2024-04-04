@@ -1,0 +1,88 @@
+@font-face {
+    font-family: 'Venite';
+    src: url(../assets/venite.woff) format("woff");
+    font-weight: bold;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: "Venite", sans-serif;
+    color: #fff;
+    text-align: center;
+
+    /* background */
+    background-image: url('../assets/background2.png');
+    background-size: 100% 100%;
+    background-position: center;
+}
+
+.border {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    border: 1px solid #ff0033;
+    border-radius: 4px;
+    pointer-events: none; 
+    box-shadow: 0 0 10px #ff0033, 0 0 20px #ff0033, 0 0 30px #ff0033; 
+}
+
+.label-container {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto; 
+    white-space: nowrap; 
+    gap: 10px; 
+    position: absolute;
+    left: 38%;
+}
+
+.label, .secondarylabel {
+    margin: 3px;
+    font-size: 24px;
+    font-family: "Venite", sans-serif;
+    color: #ff0033;
+    /* text-shadow: 0 0 1px #ff0033, 0 0 6px #AB0425;  */
+    white-space: nowrap; 
+    transition: all 0.4s ease;
+}
+
+.secondarylabel {
+    opacity: 40%;
+}
+
+.background-labels-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 0 0 0px;
+    width: 100%;
+    height: 100%;
+    z-index: -10;
+    flex-wrap: wrap;
+    overflow: hidden;
+}
+  
+.backgroundLabel {
+    flex: 0 0 auto;
+    margin: 0 8px 0 0;
+    font-size: 14px;
+    color: #5c06177e;
+    white-space: nowrap;
+}
+  
+#fullscreen {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
