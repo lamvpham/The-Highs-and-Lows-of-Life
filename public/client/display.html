@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>A3 - Data Labels</title>
+        <link rel="stylesheet" href="display/styles.css">
+    </head>
+
+    <body>
+        <!-- canvas border -->
+        <div class="border"></div> 
+
+        <!-- for all focused labels from sockets -->
+        <div id="labelsContainer" class="label-container"></div>
+        <!-- displaying focused labels on background -->
+        <div id="backgroundLabelsContainer" class="background-labels-container"></div>
+      
+        <!-- opacity 0 so that it's hidden from view -->
+        <button id="fullscreen">Toggle Fullscreen</button> 
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="display/display.js"></script>
+    </body>
+</html>

@@ -25,29 +25,30 @@ io.on("connection", (socket) => {
   // log the id of each new client
   console.log(`👋 connect ${socket.id}`);
 
-  // add listener for "mouse" data
-  // socket.on("mouse", (data) => {
-  //   console.log(` ${socket.id} mouse`, data);
-  //   // broadcast to other clients
-  //   socket.broadcast.emit("mouse", data); 
-  // });
-
+  // key for spacebar
   socket.on("key", (data) => {
     console.log(` ${socket.id} key`, data);
     // broadcast to other clients
     io.emit("key", data); 
   });
 
+  // getting focused label from wheel 1
   socket.on("Wheel1", (focusedLabel1) => {
     console.log(` ${socket.id} Wheel1`, focusedLabel1);
     // broadcast to other clients
     io.emit("Wheel1", focusedLabel1); 
   });
 
+  // local version of posEmotions array to determine colours of labels
+  let posEmotions = ["Smile", "Glow", "Thrive", "Please", "Inspire", "Love", "Attract"];
+
+  // getting focused label from wheel 2 + its colour code
   socket.on("Wheel2", (focusedLabel2) => {
     console.log(` ${socket.id} Wheel2`, focusedLabel2);
     // broadcast to other clients
-    io.emit("Wheel2", focusedLabel2); 
-  });
-});
+    let colour = posEmotions.includes(focusedLabel2['focusedLabel2']) ? "#04cdf5" : "#ff0033";
 
+    io.emit("Wheel2", { label: focusedLabel2, color: colour });
+  });
+
+});

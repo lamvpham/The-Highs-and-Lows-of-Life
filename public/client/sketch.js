@@ -1,12 +1,21 @@
 // slot wheels
 let wheel1, wheel2;
 let spinning = false;
-let groups = ["One", "Two", "Three", "Four", "Five", "Six", "Seven"];
-let cheers = ["1", "2", "3", "4", "5", "6", "7"];
+
+// label arrays
+let noun = ["You", "I", "We", "They", "You", "I", "We"];
+let posEmotions = ["Smile", "Glow", "Thrive", "Please", "Inspire", "Love", "Attract"];
+let negEmotions = ["Cry", "Question", "Worry", "Tolerate", "Regret", "Suffer", "Doubt"];
+let currentEmotions = [...posEmotions]; // clone posEmotions into currentEmotions
+
+let replacementIndex = 0; // start from the first element to replace
+let alreadyReplaced = false;
+let spunOnce = false;  // flag to track if wheels have spun at least once
+let replacingEmotions = true;
 
 // accessories
 let font;
-let backgroundImg;
+let backgroundImage;
 let casinovibes;
 
 // console flag for labels
@@ -14,9 +23,10 @@ let displayLabels = false;
 
 // press to play text
 let showText = true;
-let lastToggleTime = 0;
+let toggleTime = 0;
 let textVisible = true;
 let stopTime = null; 
+
 
 // socket components
 const socket = io();
@@ -34,15 +44,11 @@ socket.on('Wheel2', (focusedLabel2) => {
 })
 
 
-
-
 // main function - preload
 function preload() {
-  // slotClick = loadSound("assets/click.mp3");
   casinovibes = loadSound("assets/casino.mp3");
-  // win = loadSound("assets/win.mp3");
   font = loadFont("assets/venite.ttf");
-  backgroundImg = loadImage("assets/background.png");
+  backgroundImage = loadImage("assets/background.png");
 }
 
 
@@ -55,46 +61,46 @@ function setup() {
   casinovibes.setVolume(0.25);
   casinovibes.loop();
 
-  wheel1 = new SlotMachineWheel(groups, -60);
-  wheel2 = new SlotMachineWheel(cheers, 60);
+  // initializing slot wheels -> the arrays, location, first or second wheel parameters
+  wheel1 = new SlotMachineWheel(noun, -65, false);
+  wheel2 = new SlotMachineWheel(posEmotions, 65, true);
 
+  // all text in canvas
   textFont(font);
   textAlign(CENTER);
-  textSize(24);
 }
 
 
 // main function - draw
 function draw() {
   // background details
-  background(10);
-  imageMode(CORNER);
-  image(backgroundImg, -width / 2, -height / 2, width, height);
-  border();
+  noCursor();
+  image(backgroundImage, -width / 2, -height / 2, width, height);
+  border(); // drawing the border
+  grid(-200, 0, true); // grid lines for left side
+  grid(-200, 0, false); // grid lines for right side
 
-  // grid lines
-  drawGridAndArrow(-200, 0, true); 
-  drawGridAndArrow(-200, 0, false); 
-
-  // displaying slot wheels
+  // displaying/updating slot wheels
   wheel1.update();
   wheel1.display();
   wheel2.update();
   wheel2.display();
 
-  displayFocusedLabels()
-  // displaying 'press space to spin'
+  // function to replace words on the second wheel once per spin indefinitely: posEmotions <-> negEmotions
+  if (!wheel1.spinning && !wheel2.spinning && spunOnce && !alreadyReplaced) {
+    replacingWords();
+    alreadyReplaced = true; // don't replace more than once per spin
+  }
+
+  // reset flags when the wheels start spinning again
+  if (wheel1.spinning || wheel2.spinning) {
+    spunOnce = true; // to ensure the wheels have spun once before word replacement starts
+    alreadyReplaced = false;
+  }
+
+  displayFocusedLabels();
   presstoplay();
 }
-
-
-
-
-
-
-
-
-
 
 
 // main function - window resizing
@@ -113,14 +119,21 @@ function keyPressed() {
 }
 
 
+// taken from p5.js for full screen mode 
+function mousePressed() {
+  if (mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height) {
+    let fs = fullscreen();
+    fullscreen(!fs);
+  }
+}
 
 
-// activate wheel spins
+// stage 1 - activate wheel spins
 function startSpin() {
-  // Only start a new spin if both wheels have stopped spinning
+  // start new spin if both wheels have stopped spinning
   if (!wheel1.spinning && !wheel2.spinning) {
     wheel1.spin();
-    // Start wheel2 spinning after a delay of 400 ms
+    // wheel2 spins after 400ms delay
     setTimeout(() => {
       wheel2.spin();
     }, 400);
@@ -128,123 +141,145 @@ function startSpin() {
 }
 
 
+// stage 2 - displaying slots in focus
 function displayFocusedLabels() {
+  // if both wheels stopped spinning  and labels have not been displayed yet
   if (!wheel1.spinning && !wheel2.spinning && !displayLabels) {
-      let focusedLabel1 = wheel1.labels[wheel1.focusedIndex];
-      let focusedLabel2 = wheel2.labels[wheel2.focusedIndex];
-      
-      console.log(`Wheel1: ${focusedLabel1}`);
-      console.log(`Wheel2: ${focusedLabel2}`);
+    // accessing wheel index to get the current focused labels
+    let focusedLabel1 = wheel1.focusedIndex !== null ? wheel1.labels[wheel1.focusedIndex] : null;
+    let focusedLabel2 = wheel2.focusedIndex !== null ? currentEmotions[wheel2.focusedIndex % currentEmotions.length] : null;
 
-      socket.emit('Wheel1', { focusedLabel1 })
-      socket.emit('Wheel2', { focusedLabel2 })
+    console.log(`Wheel 1 focused label: ${focusedLabel1}`);
+    console.log(`Wheel 2 focused label: ${focusedLabel2}`);
 
-      // Set the flag to prevent further logging until reset
-      displayLabels = true;
+    // send label data to server
+    socket.emit('Wheel1', { focusedLabel1 });
+    socket.emit('Wheel2', { focusedLabel2 });
+
+    displayLabels = true; // no repeated logging until next spin
   }
 }
 
 
+// stage 3 - replacing the words in the currentEmotions array
+function replacingWords() {
+  if (replacingEmotions) {
+    // replace words from negEmotions array
+    if (replacementIndex < negEmotions.length) {
+      currentEmotions[replacementIndex] = negEmotions[replacementIndex];
+      replacementIndex++; // this variable determines which word to replace in the currentEmotions array
+    } else {
+      // once all replacements are done, switch to replacing with posEmotions
+      replacingEmotions = false;
+      replacementIndex = 0; // reset index for next replacement cycle
+    }
+  } 
+  // replace words from posEmotions array
+  else { 
+    if (replacementIndex < posEmotions.length) {
+      currentEmotions[replacementIndex] = posEmotions[replacementIndex];
+      replacementIndex++;
+    } else {
+      // once all replacements are done, switch to replacing with posEmotions
+      replacingEmotions = true;
+      replacementIndex = 0; // reset index for next replacement cycle
+    }
+  }
+  console.log("Current emotions array:", currentEmotions);
+}
 
 
-// drawing glowing border around edge of canvas
+// aesthetics - drawing glowing border around edge of canvas
 function border() {
-  // Draw the border
-  noFill(); // Ensure the rectangle isn't filled
-  stroke(4, 206, 245); // Set the stroke color for the border (white in this case)
-  strokeWeight(4); // Set the stroke weight (border thickness)
+  // drawing border
+  noFill(); 
+  stroke(4, 206, 245); 
+  strokeWeight(1); 
+  rect(-width / 2 + 20, -height / 2 + 20, width - 40, height - 40);
 
-  // Glow effect for the border
-  noFill();
-  for (let i = 0; i < 20; i++) { // Increase 'i' for more intense glow
-    let alphaValue = map(i, 0, 20, 50, 0); // Decrease opacity as we move outwards
+  // glow effect by layering decreasing opacity of border + its colour (since theres no easy way to have a glow in p5)
+  for (let i = 0; i < 20; i++) {
+    let alphaValue = map(i, 0, 20, 50, 0); // decrease opacity as border move outwards
     stroke(4, 206, 245, alphaValue);
     strokeWeight(4);
     rect(-width / 2 + 20 - i, -height / 2 + 20 - i, width - 40 + 2 * i, height - 40 + 2 * i);
   }
-
-  // Main border
-  noFill();
-  stroke(4, 206, 245);
-  strokeWeight(4);
-  rect(-width / 2 + 20, -height / 2 + 20, width - 40, height - 40);
 }
 
 
-// 'press space to spin' blinking text
+// aesthetics - 'press space to spin' blinking text
 function presstoplay() {
-  // Blinking text logic
-  if (showText && millis() - lastToggleTime > 1000) { // Toggle every 1 second
+  // blinking text logic
+  if (showText && millis() - toggleTime > 1000) { // every 1s
     textVisible = !textVisible;
-    lastToggleTime = millis();
+    toggleTime = millis();
   }
 
-  // Draw text if it's supposed to be visible
+  // text when visible
   if (textVisible && showText) {
-    push(); // Save the current transformation state
+    push(); 
     textSize(32);
     fill(240);
-    noStroke();
-    translate(0, 0, 300); // Move text in front of other elements
+    translate(0, 0, 300); // z-index to be in front of wheels
     text("Press SPACE to spin", 0, 0);
-    pop(); // Restore the transformation state
+    pop();
   }
 
-  // Check if wheels have stopped to determine whether to show text
-  if (!wheel1.spinning && !wheel2.spinning && stopTime === null) {
-    stopTime = millis(); // Set stopTime when both wheels stop
-  }
-
-  // Reset stopTime if either wheel starts spinning
+  // reset stopTime if wheels start spinning
   if ((wheel1.spinning || wheel2.spinning) && stopTime !== null) {
     stopTime = null;
-    showText = false; // Hide text when wheels start spinning
+    showText = false;
   }
 
-  // Show text after 4 seconds if stopTime is set
+  // if wheels stopped -> show text
+  if (!wheel1.spinning && !wheel2.spinning && stopTime === null) {
+    stopTime = millis(); // setting stopTime when both wheels stop
+  }
+
+  // show text after 4s, after spins have stopped
   if (stopTime !== null && millis() - stopTime > 4000) {
     showText = true;
   }
 }
 
 
-// grid lines and arrows to indicate which slots are in selected state for visbility
-function drawGridAndArrow(xOffset, centerY, isLeft) {
-  let arrowSize = 20; // Size of the arrow
-  let gridLength = 10; // Length of the grid lines
-  let extendedLength = 20; // Length of the extended grid lines
-  let spacing = 38; // Spacing between grid lines and the arrow
+// aesthetics - grid lines and arrows to indicate which slots are in selected state for visbility
+function grid(xOffset, centerY, isLeft) {
+  let arrowSize = 20;
+  let gridLength = 10; 
+  let extendedLength = 20; 
+  let spacing = 38;
 
   push();
   stroke(4, 206, 245);
   strokeWeight(2);
   fill(4, 206, 245);
 
-  // x is now set relative to the center of the canvas
+  // set x relative to center of canvas
   let x = isLeft ? xOffset : -xOffset;
 
-  // Draw the outermost grid lines longer
-  let yTop = centerY - 2 * spacing; // Position of the top line
-  let yBottom = centerY + 2 * spacing; // Position of the bottom line
+  // drawing outermost grid lines longer
+  let yTop = centerY - 2 * spacing; // position of top line
+  let yBottom = centerY + 2 * spacing; // position of bottom line
   line(x, yTop, x + (isLeft ? extendedLength : -extendedLength), yTop);
   line(x, yBottom, x + (isLeft ? extendedLength : -extendedLength), yBottom);
 
-  // Draw the inner grid lines
-  let yAbove = centerY - spacing; // Position above the arrow
-  let yBelow = centerY + spacing; // Position below the arrow
+  // drawing inner grid lines
+  let yAbove = centerY - spacing; // position above arrow
+  let yBelow = centerY + spacing; // position below arrow
   line(x, yAbove, x + (isLeft ? gridLength : -gridLength), yAbove);
   line(x, yBelow, x + (isLeft ? gridLength : -gridLength), yBelow);
 
-  // Draw the connecting vertical line on the left side
+  // drawing connecting vertical line on the left side
   if (isLeft) {
-    line(x, yTop, x, yBottom); // Connects the top and bottom grid lines
+    line(x, yTop, x, yBottom);
   } else {
-    // If needed, draw a connecting line on the right side as well
+    // draw connecting line on the right side
     let xRight = x + (isLeft ? gridLength : -gridLength + 10);
     line(xRight, yTop, xRight, yBottom);
   }
 
-  // Draw arrow
+  // drawing arrow
   let arrowX = isLeft ? x + arrowSize : x - arrowSize;
   line(x, centerY, arrowX, centerY);
   triangle(
@@ -255,5 +290,3 @@ function drawGridAndArrow(xOffset, centerY, isLeft) {
 
   pop();
 }
-
-
