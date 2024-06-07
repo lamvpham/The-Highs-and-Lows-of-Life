@@ -4,8 +4,8 @@
 
 Based on using 3D graphics using WebGL and Node.js for the distributed system, this art piece is an exploration between control and chance through the lens of human emotions throughout a life. By displaying textual elements selected from the slot wheels onto a secondary screen, it is meant to be a poetic expression of visual dialogue. 
 
-<img src="https://github.com/lamvpham/the-highs-and-lows-of-life/blob/master/image1.png?raw=true" width="1000" title="Image" alt="Image">
-<img src="https://github.com/lamvpham/the-highs-and-lows-of-life/blob/master/image2.png?raw=true" width="1000" title="Image" alt="Image">
+<img src="https://github.com/lamvpham/the-highs-and-lows-of-life/blob/master/image1.png?raw=true" width="200" title="Image" alt="Image">
+<img src="https://github.com/lamvpham/the-highs-and-lows-of-life/blob/master/image2.png?raw=true" width="200" title="Image" alt="Image">
 
 
 ## Formal Qualities
